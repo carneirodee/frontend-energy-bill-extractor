@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchBills } from "../actions/bills.action";
 import { fetchClient } from "../actions/client.actions";
+import { BACKEND_ENDPOINT, NODE_ENV, BACKEND_ENDPOINT_PRODUCTION } from '../config';
+
+const endpoint = NODE_ENV === "production" ? BACKEND_ENDPOINT_PRODUCTION : BACKEND_ENDPOINT;
 
 export default function Bills() {
   const years = ["2019", "2020", "2021", "2022", "2023", "2024"];
@@ -39,7 +42,7 @@ export default function Bills() {
 
 
   const filteringDistributors = (distr) => {
-    setFiltersClients('') 
+    setFiltersClients('')
     setFiltersDist(distr)
     setFilteredClients([])
     billsData.forEach(o => {
@@ -55,7 +58,7 @@ export default function Bills() {
   useEffect(() => {
     dispatch(fetchBills());
     dispatch(fetchClient());
-
+    console.log(process.env.BACKEND_ENDPOINT)
   }, [dispatch]);
 
   useEffect(() => {
@@ -316,12 +319,12 @@ export default function Bills() {
                         {billsClient.client}
                       </td>
                       {
-                        months.map((month) => {
+                        months.map((month, index) => {
                           return <td className="px-6 py-4">{filteredClients[key].bills.filter((bill) => bill.year == selectedYear).map((bill) => {
                             return bill.month.toUpperCase() == month.toUpperCase() ?
                               'ok' : ''
                           }).indexOf('ok') != -1 ?
-                            <a href="#">
+                            <a href={`${endpoint}downloads/bills/${billsClient.numUc}-${index < 10 ? '0' + Number(index + 1) : index + 1}-${selectedYear}.pdf`}>
                               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="size-6 text-gray-500">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
                               </svg>
