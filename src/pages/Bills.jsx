@@ -1,87 +1,78 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchBills } from "../actions/bills.action";
+import { fetchClient } from "../actions/client.actions";
 
 export default function Bills() {
   const years = ["2019", "2020", "2021", "2022", "2023", "2024"];
   const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-  const billsByClients = [
-    {
-      nameUc: "SELFWAY TREINAMENTO PERSONALIZADO LTDA",
-      numUc: '8888888888',
-      distributor: "CEMIG",
-      client: "SELFWAY TREINAMENTO PERSONALIZADO LTDA",
-      bills: [
-        { month: 'MAI', year: '2023' },
-        { month: 'JUN', year: '2023' },
-        { month: 'JUL', year: '2023' },
-        { month: 'AGO', year: '2023' },
-        { month: 'SET', year: '2023' },
-        { month: 'OUT', year: '2023' },
-        { month: 'NOV', year: '2023' },
-        { month: 'DEZ', year: '2023' },
-        { month: 'JAN', year: '2024' },
-        { month: 'FEV', year: '2024' },
-        { month: 'MAR', year: '2024' },
-        { month: 'ABR', year: '2024' },
-        { month: 'MAI', year: '2024' },
-        { month: 'JUN', year: '2024' },
-        { month: 'JUL', year: '2024' },
-        { month: 'AGO', year: '2024' },
-        { month: 'SET', year: '2024' },
-      ]
-    },
-    {
-      nameUc: "JOSE MESALY FONSECA DE CARVALHO 52024156",
-      numUc: '8888888888',
-      distributor: "CEMIG",
-      client: "JOSE MESALY FONSECA DE CARVALHO 52024156",
-      bills: [
-        { month: 'MAI', year: '2023' },
-        { month: 'JUN', year: '2023' },
-        { month: 'JUL', year: '2023' },
-        { month: 'AGO', year: '2023' },
-        { month: 'SET', year: '2023' },
-        { month: 'OUT', year: '2023' },
-        { month: 'NOV', year: '2023' },
-        { month: 'DEZ', year: '2023' },
-        { month: 'JAN', year: '2024' },
-        { month: 'FEV', year: '2024' },
-        { month: 'MAR', year: '2024' },
-        { month: 'ABR', year: '2024' },
-        { month: 'MAI', year: '2024' },
-        { month: 'JUN', year: '2024' },
-        { month: 'JUL', year: '2024' },
-        { month: 'AGO', year: '2024' },
-        { month: 'SET', year: '2024' },
-      ]
-    }
-  ]
+  const dispatch = useDispatch();
+  const isLoadingBills = useSelector(state => state.billReducer.isLoadingBills);
+  const isLoadingClients = useSelector(state => state.billReducer.isLoadingClient);
+  const clients = useSelector(state => state.clientReducer.clients);
+  const billsData = useSelector(state => state.billReducer.bills);
   const distributors = ["CEMIG"];
-  const clients = ["SELFWAY TREINAMENTO PERSONALIZADO LTDA", "JOSE MESALY FONSECA DE CARVALHO 52024156"]
   const [selectedYear, setSelectedYear] = useState('2024');
   const [showModalClients, setShowModalClients] = useState(false);
   const [showModalDistributors, setShowModalDistributors] = useState(false);
-  const [filtersClients, setFiltersClients] = useState([]);
+  const [filtersClient, setFiltersClients] = useState('');
   const [filtersDist, setFiltersDist] = useState([]);
+  const [filteredClients, setFilteredClients] = useState(clients)
 
-  const deleteClient = (name: string) => {
-    setFiltersClients((filtersClients) => filtersClients.filter((item) => item !== name))
-  }
-
-  const deleteDistributor = (name: string) => {
+  const deleteDistributor = (name) => {
     setFiltersDist((filtersDist) => filtersDist.filter((item) => item !== name))
   }
 
+  const filteringClients = (client) => {
+    setFiltersClients(client)
+    setFiltersDist([])
+    setFilteredClients([])
+    billsData.forEach(o => {
+      if (o.client == client) {
+        console.log("É IGUAL")
+        setFilteredClients(oldArray => [o, ...oldArray])
+      }
+
+    })
+    console.log(filteredClients)
+  }
+
+
+  const filteringDistributors = (distr) => {
+    setFiltersClients('') 
+    setFiltersDist(distr)
+    setFilteredClients([])
+    billsData.forEach(o => {
+      console.log(o.distributor)
+      if (o.distributor == distr) {
+        console.log("É IGUAL")
+        setFilteredClients(oldArray => [o, ...oldArray])
+      }
+      console.log(filteredClients)
+    })
+  }
+
+  useEffect(() => {
+    dispatch(fetchBills());
+    dispatch(fetchClient());
+
+  }, [dispatch]);
+
+  useEffect(() => {
+    console.log("BILL", billsData)
+    setFilteredClients(billsData)
+  }, [isLoadingBills]);
+
   return (
     <>
-
-      <div className="App">
+      <div>
         <header className="">
           <h1 className="text-green-900 text-3xl text-gray-900 mb-3">Faturas</h1>
           <h5 className="text-gray-400 text-base text-gray-900 ">Faturas &gt;</h5>
         </header>
         <section className="mt-5 flex-1	items-center	 flex-row" >
           <nav style={{ display: 'flex', flex: 1, flexDirection: 'row', alignItems: 'flex-start' }} >
-            <button onClick={() => setShowModalClients(true)} type="button" className={filtersClients.length > 0 ? "text-white bg-green-900 hover:bg-green-900  font-thin	rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center me-2 mb-2" : "text-white bg-gray-300 hover:bg-gray-300  font-thin	rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center me-2 mb-2"}>
+            <button onClick={() => setShowModalClients(true)} type="button" className={filtersClient != '' ? "text-white bg-green-900 hover:bg-green-900  font-thin	rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center me-2 mb-2" : "text-white bg-gray-300 hover:bg-gray-300  font-thin	rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center me-2 mb-2"}>
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="size-6">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
               </svg>
@@ -139,8 +130,8 @@ export default function Bills() {
                         {
                           clients.map((client) => {
                             return <div className="flex items-center" >
-                              <input id="default-checkbox" onChange={(e: any) => e.target.checked == true ? setFiltersClients(oldArray => [client as never, ...oldArray]) : deleteClient(client)} type="checkbox" value="" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
-                              <label htmlFor="default-checkbox" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">{client}</label>
+                              <input id="default-checkbox" checked={filtersClient == client.name ? true : false} onChange={(e) => filteringClients(client.name)} type="checkbox" value="" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
+                              <label htmlFor="default-checkbox" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">{client.name}</label>
                             </div>
 
                           })
@@ -216,7 +207,7 @@ export default function Bills() {
                         {
                           distributors.map((distributor) => {
                             return <div className="flex items-center" >
-                              <input id="default-checkbox" onChange={(e: any) => e.target.checked == true ? setFiltersDist(oldArray => [distributor as never, ...oldArray]) : deleteDistributor(distributor)} type="checkbox" value="" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
+                              <input id="default-checkbox" checked={filtersDist.indexOf(distributor) != -1 ? true : false} onChange={(e) => e.target.checked == true ? filteringDistributors(distributor) : deleteDistributor(distributor)} type="checkbox" value="" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
                               <label htmlFor="default-checkbox" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">{distributor}</label>
                             </div>
 
@@ -308,7 +299,7 @@ export default function Bills() {
               </thead>
               <tbody>
                 {
-                  billsByClients.map((billsClient, key) => {
+                  isLoadingBills === true ? 'Carregando...' : filteredClients.map((billsClient, key) => {
                     return <tr className="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700">
 
                       <td className="px-6 py-4">
@@ -326,16 +317,19 @@ export default function Bills() {
                       </td>
                       {
                         months.map((month) => {
-                          return <td className="px-6 py-4">{billsByClients[key].bills.filter((bill) => bill.year == selectedYear).map((bill) => {
+                          return <td className="px-6 py-4">{filteredClients[key].bills.filter((bill) => bill.year == selectedYear).map((bill) => {
                             return bill.month.toUpperCase() == month.toUpperCase() ?
                               'ok' : ''
-                          }).indexOf('ok') != -1 ? 
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="size-6 text-gray-500">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                          </svg> : 
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="size-6 text-gray-300">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                        </svg> 
+                          }).indexOf('ok') != -1 ?
+                            <a href="#">
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="size-6 text-gray-500">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                              </svg>
+                            </a>
+                            :
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="size-6 text-gray-300">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                            </svg>
                           }
                           </td>
                         })

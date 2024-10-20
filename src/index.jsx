@@ -8,7 +8,8 @@ import "./index.css";
 import Root from "./routes/root";
 import Dashboard from "./pages/Dashboard";
 import Bills from "./pages/Bills";
-
+import { Provider } from "react-redux";
+import store from './store'
 const router = createBrowserRouter([
   {
     path: "/",
@@ -16,19 +17,25 @@ const router = createBrowserRouter([
     children: [
       {
         path: "Dashboard",
-        element: <Dashboard/>,
+        element: <Dashboard />,
+      },
+      {
+        path: "Dashboard",
+        element: <Dashboard />,
       },
       {
         path: "Faturas",
-        element: <Bills/>,
+        element: <Bills />,
       },
     ],
   },
-  
+
 ]);
 
-ReactDOM.createRoot(document.getElementById("root") as ReactDOM.Container).render(
-  <React.StrictMode>
-    <RouterProvider router={router} />
-  </React.StrictMode>
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <Provider store={store}>
+    <React.StrictMode>
+      <RouterProvider router={router} />
+    </React.StrictMode>
+  </Provider>
 );
