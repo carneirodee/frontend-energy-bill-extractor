@@ -12,7 +12,7 @@ export default function Root() {
 
             <aside id="default-sidebar" className="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0 " aria-label="Sidebar">
                 <div className="h-full px-3 py-4 overflow-y-auto bg-green-950 dark:bg-gray-800 rounded-r-large">
-                    <a href="https://flowbite.com/" className="flex items-center ps-3.5 mb-6 mt-6">
+                    <a href="#" className="flex items-center ps-3.5 mb-6 mt-6">
                         <img src="https://uploads-ssl.webflow.com/62f9249c43126cafce10bc33/62fd12497ffcb83b28ea3309_logo-lumi-white.svg" className="h-9 me-6 sm:h-9" alt="Lumi Logo" />
                     </a>
                     <br />
